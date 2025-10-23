@@ -102,6 +102,14 @@
             background: #2E8B57;
         }
         
+        .edit-btn {
+            background: #007bff;
+        }
+        
+        .edit-btn:hover {
+            background: #0056b3;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
@@ -200,10 +208,6 @@
     <div class="container">
         <h1>🍪 حاسبة أرباح الكوكيز</h1>
         
-     
-     
-        </div>
-        
         <div class="form-container">
             <div class="form-row">
                 <div class="form-group">
@@ -227,7 +231,8 @@
                 </div>
             </div>
             
-            <button class="add-btn" onclick="addCookie()">إضافة الكوكيز</button>
+            <button class="add-btn" onclick="addCookie()" id="addButton">إضافة الكوكيز</button>
+            <button class="edit-btn" onclick="updateCookie()" id="updateButton" style="display:none;">تحديث الكوكيز</button>
         </div>
         
         <table id="cookiesTable">
@@ -266,6 +271,7 @@
 
     <script>
         let cookies = [];
+        let editingIndex = -1;
         
         function addCookie() {
             const name = document.getElementById('cookieName').value;
@@ -297,16 +303,83 @@
             updateTotals();
             
             // مسح الحقول بعد الإضافة
-            document.getElementById('cookieName').value = '';
-            document.getElementById('cookieQuantity').value = '';
-            document.getElementById('costPrice').value = '';
-            document.getElementById('sellingPrice').value = '';
+            clearForm();
+        }
+        
+        function editCookie(index) {
+            const cookie = cookies[index];
+            
+            // تعبئة الحقول بقيم الكوكيز المحدد
+            document.getElementById('cookieName').value = cookie.name;
+            document.getElementById('cookieQuantity').value = cookie.quantity;
+            document.getElementById('costPrice').value = cookie.costPrice;
+            document.getElementById('sellingPrice').value = cookie.sellingPrice;
+            
+            // حفظ الفهرس للاستخدام عند التحديث
+            editingIndex = index;
+            
+            // تغيير الزر من إضافة إلى تحديث
+            document.getElementById('addButton').style.display = 'none';
+            document.getElementById('updateButton').style.display = 'inline-block';
+        }
+        
+        function updateCookie() {
+            if (editingIndex === -1) return;
+            
+            const name = document.getElementById('cookieName').value;
+            const quantity = parseInt(document.getElementById('cookieQuantity').value);
+            const costPrice = parseFloat(document.getElementById('costPrice').value);
+            const sellingPrice = parseFloat(document.getElementById('sellingPrice').value);
+            
+            if (!name || isNaN(quantity) || isNaN(costPrice) || isNaN(sellingPrice)) {
+                alert('يرجى ملء جميع الحقول بشكل صحيح');
+                return;
+            }
+            
+            const revenue = quantity * sellingPrice;
+            const totalCost = quantity * costPrice;
+            const profit = revenue - totalCost;
+            
+            // تحديث الكوكيز في المصفوفة
+            cookies[editingIndex] = {
+                name,
+                quantity,
+                costPrice,
+                sellingPrice,
+                revenue,
+                totalCost,
+                profit
+            };
+            
+            updateTable();
+            updateTotals();
+            
+            // إعادة تعيين الوضع
+            clearForm();
+            editingIndex = -1;
+            document.getElementById('addButton').style.display = 'inline-block';
+            document.getElementById('updateButton').style.display = 'none';
         }
         
         function deleteCookie(index) {
             cookies.splice(index, 1);
             updateTable();
             updateTotals();
+            
+            // إذا كنا في وضع التعديل وحذفنا العنصر الذي نعدله
+            if (editingIndex === index) {
+                clearForm();
+                editingIndex = -1;
+                document.getElementById('addButton').style.display = 'inline-block';
+                document.getElementById('updateButton').style.display = 'none';
+            }
+        }
+        
+        function clearForm() {
+            document.getElementById('cookieName').value = '';
+            document.getElementById('cookieQuantity').value = '';
+            document.getElementById('costPrice').value = '';
+            document.getElementById('sellingPrice').value = '';
         }
         
         function updateTable() {
@@ -327,6 +400,7 @@
                         ${cookie.profit.toFixed(2)} د.ل
                     </td>
                     <td class="actions">
+                        <button class="edit-btn" onclick="editCookie(${index})">تعديل</button>
                         <button class="delete-btn" onclick="deleteCookie(${index})">حذف</button>
                     </td>
                 `;
