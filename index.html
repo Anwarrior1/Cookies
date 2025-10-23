@@ -185,6 +185,12 @@
             color: #228B22;
         }
         
+        .profit-percentage {
+            font-size: 1.2rem;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        
         .cost-value {
             color: #dc3545;
         }
@@ -199,6 +205,10 @@
             }
             
             .actions {
+                flex-direction: column;
+            }
+            
+            .results {
                 flex-direction: column;
             }
         }
@@ -245,6 +255,7 @@
                     <th>الإيرادات</th>
                     <th>التكلفة الإجمالية</th>
                     <th>الربح</th>
+                    <th>نسبة الربح %</th>
                     <th>الإجراءات</th>
                 </tr>
             </thead>
@@ -265,6 +276,7 @@
             <div class="result-box">
                 <div class="result-title">صافي الربح</div>
                 <div id="netProfit" class="result-value">0.00 د.ل</div>
+                <div id="profitPercentage" class="profit-percentage">0%</div>
             </div>
         </div>
     </div>
@@ -287,6 +299,7 @@
             const revenue = quantity * sellingPrice;
             const totalCost = quantity * costPrice;
             const profit = revenue - totalCost;
+            const profitPercentage = totalCost > 0 ? (profit / totalCost) * 100 : 0;
             
             const cookie = {
                 name,
@@ -295,7 +308,8 @@
                 sellingPrice,
                 revenue,
                 totalCost,
-                profit
+                profit,
+                profitPercentage
             };
             
             cookies.push(cookie);
@@ -339,6 +353,7 @@
             const revenue = quantity * sellingPrice;
             const totalCost = quantity * costPrice;
             const profit = revenue - totalCost;
+            const profitPercentage = totalCost > 0 ? (profit / totalCost) * 100 : 0;
             
             // تحديث الكوكيز في المصفوفة
             cookies[editingIndex] = {
@@ -348,7 +363,8 @@
                 sellingPrice,
                 revenue,
                 totalCost,
-                profit
+                profit,
+                profitPercentage
             };
             
             updateTable();
@@ -399,6 +415,9 @@
                     <td style="color: ${cookie.profit >= 0 ? '#228B22' : '#dc3545'}; font-weight: bold">
                         ${cookie.profit.toFixed(2)} د.ل
                     </td>
+                    <td style="color: ${cookie.profitPercentage >= 0 ? '#228B22' : '#dc3545'}; font-weight: bold">
+                        ${cookie.profitPercentage.toFixed(1)}%
+                    </td>
                     <td class="actions">
                         <button class="edit-btn" onclick="editCookie(${index})">تعديل</button>
                         <button class="delete-btn" onclick="deleteCookie(${index})">حذف</button>
@@ -413,14 +432,24 @@
             const totalRevenue = cookies.reduce((sum, cookie) => sum + cookie.revenue, 0);
             const totalCost = cookies.reduce((sum, cookie) => sum + cookie.totalCost, 0);
             const netProfit = totalRevenue - totalCost;
+            const profitPercentage = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
             
             document.getElementById('totalRevenue').textContent = `${totalRevenue.toFixed(2)} د.ل`;
             document.getElementById('totalCost').textContent = `${totalCost.toFixed(2)} د.ل`;
             document.getElementById('netProfit').textContent = `${netProfit.toFixed(2)} د.ل`;
+            document.getElementById('profitPercentage').textContent = `${profitPercentage.toFixed(1)}% من رأس المال`;
             
-            // تغيير لون صافي الربح بناء على القيمة
+            // تغيير لون صافي الربح والنسبة بناء على القيمة
             const netProfitElement = document.getElementById('netProfit');
-            netProfitElement.style.color = netProfit >= 0 ? '#228B22' : '#dc3545';
+            const profitPercentageElement = document.getElementById('profitPercentage');
+            
+            if (netProfit >= 0) {
+                netProfitElement.style.color = '#228B22';
+                profitPercentageElement.style.color = '#228B22';
+            } else {
+                netProfitElement.style.color = '#dc3545';
+                profitPercentageElement.style.color = '#dc3545';
+            }
         }
     </script>
 </body>
